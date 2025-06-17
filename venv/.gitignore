@@ -38,6 +38,12 @@ Thumbs.db
 *.backup
 *.sql
 
+# Database files
+*.sqlite3
+*.backup
+db.sqlite3*
+media/
+
 # Static files (if collected)
 staticfiles/
 static_root/
