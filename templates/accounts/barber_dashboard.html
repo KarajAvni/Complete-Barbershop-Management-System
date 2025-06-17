@@ -1,0 +1,138 @@
+<!-- templates/accounts/barber_dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Barber Dashboard - The Barbershop{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Welcome back, {{ user.get_full_name|default:user.username }}!</h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h3 class="text-warning mb-3">
+            <i class="bi bi-scissors me-2"></i>Barber Dashboard
+        </h3>
+    </div>
+</div>
+
+<!-- Quick Stats for Barbers -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="dashboard-card barber">
+            <i class="bi bi-clock-history display-4 mb-3"></i>
+            <div class="dashboard-stat">{{ barber_stats.pending_bookings }}</div>
+            <div class="dashboard-label">Pending Requests</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card barber">
+            <i class="bi bi-calendar-check display-4 mb-3"></i>
+            <div class="dashboard-stat">{{ barber_stats.today_appointments }}</div>
+            <div class="dashboard-label">Today's Appointments</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card barber">
+            <i class="bi bi-currency-dollar display-4 mb-3"></i>
+            <div class="dashboard-stat">${{ barber_stats.week_earnings }}</div>
+            <div class="dashboard-label">This Week's Earnings</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card barber">
+            <i class="bi bi-star-fill display-4 mb-3"></i>
+            <div class="dashboard-stat">{{ barber_stats.average_rating|floatformat:1 }}</div>
+            <div class="dashboard-label">Average Rating</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions for Barbers -->
+<div class="quick-actions mb-4">
+    <a href="/bookings/manage/" class="quick-action text-decoration-none">
+        <i class="bi bi-calendar-check"></i>
+        <h5>Manage Bookings</h5>
+        <p class="text-muted">Approve or reject requests</p>
+    </a>
+    <a href="/barbers/schedule/" class="quick-action text-decoration-none">
+        <i class="bi bi-calendar3"></i>
+        <h5>My Schedule</h5>
+        <p class="text-muted">View weekly schedule</p>
+    </a>
+    <a href="/barbers/{{ barber.id }}/" class="quick-action text-decoration-none">
+        <i class="bi bi-person-circle"></i>
+        <h5>My Profile</h5>
+        <p class="text-muted">View public profile</p>
+    </a>
+</div>
+
+<!-- Pending Booking Requests -->
+{% if pending_bookings %}
+<div class="dashboard-widget">
+    <div class="widget-header">
+        <h5 class="widget-title">Pending Booking Requests</h5>
+        <span class="badge bg-warning">{{ pending_bookings|length }} pending</span>
+    </div>
+    <div class="widget-content">
+        {% for booking in pending_bookings %}
+            <div class="booking-card card mb-3 pending">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="mb-1">{{ booking.service.name }}</h6>
+                            <p class="text-muted mb-1">
+                                <strong>{{ booking.client.get_full_name|default:booking.client.username }}</strong><br>
+                                <i class="bi bi-calendar me-1"></i>{{ booking.date }} at {{ booking.time }}
+                            </p>
+                            {% if booking.notes %}
+                                <small class="text-muted"><i class="bi bi-chat-left-text me-1"></i>{{ booking.notes }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="fw-bold text-success mb-2">${{ booking.service.price }}</div>
+                            <form method="post" action="/bookings/manage/" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="booking_id" value="{{ booking.pk }}">
+                                <button type="submit" name="action" value="approve" class="btn btn-sm btn-success me-1">
+                                    <i class="bi bi-check-circle"></i> Approve
+                                </button>
+                                <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-x-circle"></i> Reject
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Today's Schedule -->
+<div class="dashboard-widget">
+    <div class="widget-header">
+        <h5 class="widget-title">Today's Schedule</h5>
+        <span class="badge bg-info">{{ today_schedule|length }} appointments</span>
+    </div>
+    <div class="widget-content">
+        {% if today_schedule %}
+            <div class="schedule-grid">
+                {% for appointment in today_schedule %}
+                    <div class="time-slot {% if appointment.status == 'approved' %}available{% else %}booked{% endif %}">
+                        <div class="fw-bold">{{ appointment.time }}</div>
+                        <div class="small">{{ appointment.client.get_full_name|default:appointment.client.username }}</div>
+                        <div class="small text-muted">{{ appointment.service.name }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted text-center py-3">No appointments scheduled for today.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

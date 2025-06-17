@@ -1,0 +1,183 @@
+<!-- templates/bookings/booking_history.html -->
+{% extends 'base.html' %}
+
+{% block title %}Booking History - The Barbershop{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Your Booking History</h2>
+    <a href="{% url 'bookings:book' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>New Appointment
+    </a>
+</div>
+
+{% if bookings %}
+    <div class="row g-4">
+        {% for booking in bookings %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h6 class="card-title mb-0">{{ booking.service.name }}</h6>
+                        <span class="badge bg-{% if booking.status == 'approved' %}success{% elif booking.status == 'pending' %}warning{% elif booking.status == 'rejected' %}danger{% elif booking.status == 'completed' %}info{% elif booking.status == 'cancelled' %}secondary{% else %}secondary{% endif %}">
+                            {% if booking.status == 'pending' %}
+                                <i class="bi bi-clock me-1"></i>
+                            {% elif booking.status == 'approved' %}
+                                <i class="bi bi-check-circle me-1"></i>
+                            {% elif booking.status == 'rejected' %}
+                                <i class="bi bi-x-circle me-1"></i>
+                            {% elif booking.status == 'completed' %}
+                                <i class="bi bi-check2-all me-1"></i>
+                            {% elif booking.status == 'cancelled' %}
+                                <i class="bi bi-x-octagon me-1"></i>
+                            {% endif %}
+                            {{ booking.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <i class="bi bi-person me-2 text-muted"></i>
+                        <strong>{{ booking.barber.user.get_full_name|default:booking.barber.user.username }}</strong>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <i class="bi bi-calendar me-2 text-muted"></i>
+                        {{ booking.date|date:"l, F d, Y" }}
+                    </div>
+                    
+                    <div class="mb-2">
+                        <i class="bi bi-clock me-2 text-muted"></i>
+                        {{ booking.time|time:"g:i A" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <i class="bi bi-currency-dollar me-2 text-muted"></i>
+                        <span class="fw-bold text-success">${{ booking.service.price }}</span>
+                        <small class="text-muted">({{ booking.service.duration_minutes }} min)</small>
+                    </div>
+                    
+                    {% if booking.notes %}
+                    <div class="mb-3 p-2 bg-light rounded">
+                        <small class="text-muted d-block">
+                            <i class="bi bi-chat-left-text me-1"></i><strong>Your Notes:</strong>
+                        </small>
+                        <small>{{ booking.notes }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if booking.barber_comment %}
+                    <div class="mb-3 p-2 bg-success bg-opacity-10 rounded">
+                        <small class="text-success d-block">
+                            <i class="bi bi-chat-left-text me-1"></i><strong>Barber Message:</strong>
+                        </small>
+                        <small>{{ booking.barber_comment }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if booking.rejection_reason %}
+                    <div class="mb-3 p-2 bg-danger bg-opacity-10 rounded">
+                        <small class="text-danger d-block">
+                            <i class="bi bi-exclamation-triangle me-1"></i><strong>Rejection Reason:</strong>
+                        </small>
+                        <small>{{ booking.rejection_reason }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="bi bi-clock-history me-1"></i>
+                            Booked {{ booking.created_at|timesince }} ago
+                        </small>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'bookings:detail' booking.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye me-1"></i>View Details
+                        </a>
+                        
+                        {% if booking.status == 'pending' or booking.status == 'approved' %}
+                            <form method="post" action="{% url 'bookings:cancel' booking.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm w-100" 
+                                        onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel Booking
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        {% if booking.status == 'completed' %}
+                            <a href="/barbers/{{ booking.barber.id }}/review/" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-star me-1"></i>Leave Review
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">Quick Stats</h6>
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <div class="h5 mb-0 text-primary">{{ bookings|length }}</div>
+                            <small class="text-muted">Total Bookings</small>
+                        </div>
+                        <div class="col-3">
+                            <div class="h5 mb-0 text-warning">
+                                {% with pending_count=0 %}
+                                    {% for booking in bookings %}
+                                        {% if booking.status == 'pending' %}
+                                            {% if forloop.first %}1{% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                        <div class="col-3">
+                            <div class="h5 mb-0 text-success">
+                                {% with approved_count=0 %}
+                                    {% for booking in bookings %}
+                                        {% if booking.status == 'approved' %}
+                                            {% if forloop.first %}1{% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <small class="text-muted">Approved</small>
+                        </div>
+                        <div class="col-3">
+                            <div class="h5 mb-0 text-info">
+                                {% with completed_count=0 %}
+                                    {% for booking in bookings %}
+                                        {% if booking.status == 'completed' %}
+                                            {% if forloop.first %}1{% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <small class="text-muted">Completed</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-calendar-x display-1 text-muted mb-3"></i>
+        <h4>No bookings yet</h4>
+        <p class="text-muted mb-4">You haven't made any appointments yet. Book your first appointment to get started!</p>
+        <a href="{% url 'bookings:book' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-calendar-plus me-2"></i>Book Your First Appointment
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

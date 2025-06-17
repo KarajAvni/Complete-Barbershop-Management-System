@@ -1,0 +1,172 @@
+<!-- shop/settings.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shop Settings - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>Shop Settings
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        
+                        <div class="col-md-6">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                <i class="fas fa-store me-1"></i>Shop Name
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small">{{ form.name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>Email
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                <i class="fas fa-phone me-1"></i>Phone
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger small">{{ form.phone.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.slot_duration.id_for_label }}" class="form-label">
+                                <i class="fas fa-clock me-1"></i>Slot Duration (minutes)
+                            </label>
+                            {{ form.slot_duration }}
+                            {% if form.slot_duration.errors %}
+                                <div class="text-danger small">{{ form.slot_duration.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="{{ form.address.id_for_label }}" class="form-label">
+                                <i class="fas fa-map-marker-alt me-1"></i>Address
+                            </label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div class="text-danger small">{{ form.address.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.opening_time.id_for_label }}" class="form-label">
+                                <i class="fas fa-clock me-1"></i>Opening Time
+                            </label>
+                            {{ form.opening_time }}
+                            {% if form.opening_time.errors %}
+                                <div class="text-danger small">{{ form.opening_time.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.closing_time.id_for_label }}" class="form-label">
+                                <i class="fas fa-clock me-1"></i>Closing Time
+                            </label>
+                            {{ form.closing_time }}
+                            {% if form.closing_time.errors %}
+                                <div class="text-danger small">{{ form.closing_time.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.max_advance_booking_days.id_for_label }}" class="form-label">
+                                <i class="fas fa-calendar-alt me-1"></i>Max Advance Booking Days
+                            </label>
+                            {{ form.max_advance_booking_days }}
+                            {% if form.max_advance_booking_days.errors %}
+                                <div class="text-danger small">{{ form.max_advance_booking_days.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.cancellation_hours.id_for_label }}" class="form-label">
+                                <i class="fas fa-times-circle me-1"></i>Cancellation Hours
+                            </label>
+                            {{ form.cancellation_hours }}
+                            {% if form.cancellation_hours.errors %}
+                                <div class="text-danger small">{{ form.cancellation_hours.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <hr>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Save Settings
+                                </button>
+                                <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 12px 15px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn {
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 500;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+</style>
+{% endblock %}

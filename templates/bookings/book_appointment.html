@@ -1,0 +1,220 @@
+<!-- templates/bookings/book_appointment.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Appointment - The Barbershop{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Book Your Appointment</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" id="booking-form">
+                    {% csrf_token %}
+                    
+                    <!-- Service Selection -->
+                    <div class="mb-4">
+                        <h5>Select Service</h5>
+                        <div class="row g-3">
+                            {% for service in services %}
+                            <div class="col-md-6">
+                                <div class="service-card card h-100" data-service-id="{{ service.id }}">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">{{ service.name }}</h6>
+                                        <p class="card-text small">{{ service.description }}</p>
+                                        <div class="service-price">${{ service.price }}</div>
+                                        <small class="text-muted">{{ service.duration_minutes }} minutes</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {{ form.service.as_hidden }}
+                    </div>
+
+                    <!-- Barber Selection -->
+                    <div class="mb-4">
+                        <h5>Select Barber</h5>
+                        <div class="row g-3">
+                            {% for barber in barbers %}
+                            <div class="col-md-4">
+                                <div class="card text-center barber-selection" data-barber-id="{{ barber.id }}">
+                                    <div class="card-body">
+                                        {% if barber.photo %}
+                                            <img src="{{ barber.photo.url }}" alt="{{ barber }}" class="barber-image mb-2">
+                                        {% else %}
+                                            <div class="barber-image mx-auto mb-2 bg-light d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-person-fill display-6 text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                        <h6>{{ barber.user.get_full_name|default:barber.user.username }}</h6>
+                                        <div class="star-rating mb-2">
+                                            {% with rating=barber.average_rating %}
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= rating %}
+                                                        <i class="bi bi-star-fill text-warning"></i>
+                                                    {% else %}
+                                                        <i class="bi bi-star text-muted"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endwith %}
+                                        </div>
+                                        {% if barber.specialties %}
+                                            <small class="text-muted d-block">{{ barber.specialties|truncatechars:30 }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {{ form.barber.as_hidden }}
+                    </div>
+
+                    <!-- Date and Time -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
+                            {{ form.date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.time.id_for_label }}" class="form-label">Time</label>
+                            {{ form.time }}
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-4">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                        {{ form.notes }}
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Book Appointment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Booking Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Please note:</strong> Your booking request will be sent to the barber for approval. You'll receive a notification once it's confirmed.
+                </div>
+                
+                <h6>Business Hours</h6>
+                <ul class="list-unstyled mb-3">
+                    <li><strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM</li>
+                    <li><strong>Saturday:</strong> 9:00 AM - 4:00 PM</li>
+                    <li><strong>Sunday:</strong> Closed</li>
+                </ul>
+                
+                <h6>Cancellation Policy</h6>
+                <p class="small text-muted">
+                    Please provide at least 24 hours notice for cancellations to avoid any charges.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.service-card, .barber-selection {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.service-card:hover, .barber-selection:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+}
+
+.service-card.selected, .barber-selection.selected {
+    border-color: #007bff;
+    background-color: #f8f9ff;
+}
+
+.service-price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.barber-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+}
+</style>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Service card selection
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            document.getElementById('id_service').value = this.dataset.serviceId;
+        });
+    });
+
+    // Barber card selection
+    document.querySelectorAll('.barber-selection').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.barber-selection').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            document.getElementById('id_barber').value = this.dataset.barberId;
+            updateAvailableTimes();
+        });
+    });
+
+    function updateAvailableTimes() {
+        const barberId = document.getElementById('id_barber').value;
+        const selectedDate = document.getElementById('id_date').value;
+        const timeSelect = document.getElementById('id_time');
+
+        if (barberId && selectedDate) {
+            fetch(`/bookings/api/available-times/?barber_id=${barberId}&date=${selectedDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    timeSelect.innerHTML = '<option value="">Select a time</option>';
+                    if (data.times && data.times.length > 0) {
+                        data.times.forEach(time => {
+                            const option = document.createElement('option');
+                            option.value = time;
+                            option.textContent = time;
+                            timeSelect.appendChild(option);
+                        });
+                    } else {
+                        timeSelect.innerHTML = '<option value="">No available times</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching available times:', error);
+                    timeSelect.innerHTML = '<option value="">Error loading times</option>';
+                });
+        }
+    }
+
+    document.getElementById('id_date').addEventListener('change', updateAvailableTimes);
+});
+</script>
+{% endblock %}
+{% endblock %}

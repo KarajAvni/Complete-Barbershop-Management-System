@@ -1,0 +1,448 @@
+<!-- templates/accounts/dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - The Barbershop{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Welcome back, {{ user.get_full_name|default:user.username }}!</h1>
+    </div>
+</div>
+
+{% if user.profile.user_type == 'client' or not user.profile.user_type %}
+    <!-- CLIENT DASHBOARD -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="text-primary mb-3">
+                <i class="bi bi-person-circle me-2"></i>Client Dashboard
+            </h3>
+        </div>
+    </div>
+
+    <!-- Quick Stats for Clients -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="dashboard-card client">
+                <i class="bi bi-calendar-plus display-4 mb-3"></i>
+                <div class="dashboard-stat">{{ client_stats.upcoming_bookings }}</div>
+                <div class="dashboard-label">Upcoming Appointments</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card client">
+                <i class="bi bi-clock-history display-4 mb-3"></i>
+                <div class="dashboard-stat">{{ client_stats.total_bookings }}</div>
+                <div class="dashboard-label">Total Bookings</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card client">
+                <i class="bi bi-heart-fill display-4 mb-3"></i>
+                <div class="dashboard-stat">{{ client_stats.favorite_barbers }}</div>
+                <div class="dashboard-label">Favorite Barbers</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card client">
+                <i class="bi bi-star-fill display-4 mb-3"></i>
+                <div class="dashboard-stat">{{ client_stats.reviews_given }}</div>
+                <div class="dashboard-label">Reviews Given</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions for Clients -->
+    <div class="quick-actions mb-4">
+        <a href="/bookings/book/" class="quick-action text-decoration-none">
+            <i class="bi bi-calendar-plus"></i>
+            <h5>Book Appointment</h5>
+            <p class="text-muted">Schedule your next visit</p>
+        </a>
+        <a href="/barbers/" class="quick-action text-decoration-none">
+            <i class="bi bi-people"></i>
+            <h5>Browse Barbers</h5>
+            <p class="text-muted">Find your perfect barber</p>
+        </a>
+        <a href="/bookings/history/" class="quick-action text-decoration-none">
+            <i class="bi bi-clock-history"></i>
+            <h5>Booking History</h5>
+            <p class="text-muted">View past appointments</p>
+        </a>
+    </div>
+
+    <!-- Available Time Slots Today -->
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h5 class="widget-title">Available Times Today</h5>
+            <span class="badge bg-success">{{ available_slots_today|length }} slots</span>
+        </div>
+        <div class="widget-content">
+            {% if available_slots_today %}
+                <div class="available-times">
+                    {% for slot in available_slots_today %}
+                        <a href="/bookings/book/?time={{ slot.time }}&barber={{ slot.barber.id }}" class="time-option text-decoration-none">
+                            <div class="fw-bold">{{ slot.time }}</div>
+                            <small class="text-muted">{{ slot.barber.user.first_name }}</small>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted text-center py-3">No available slots today. Try tomorrow!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    {% if recent_bookings %}
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h5 class="widget-title">Recent Bookings</h5>
+            <a href="/bookings/history/" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="widget-content">
+            {% for booking in recent_bookings %}
+                <div class="booking-card card mb-3 {{ booking.status }}">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-1">{{ booking.service.name }} with {{ booking.barber }}</h6>
+                                <p class="text-muted mb-1">
+                                    <i class="bi bi-calendar me-1"></i>{{ booking.date }} at {{ booking.time }}
+                                </p>
+                                <span class="badge status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="fw-bold text-success">${{ booking.service.price }}</div>
+                                <a href="/bookings/{{ booking.id }}/" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+{% elif user.profile.user_type == 'barber' %}
+    <!-- BARBER DASHBOARD -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="text-warning mb-3">
+                <i class="bi bi-scissors me-2"></i>Barber Dashboard
+            </h3>
+        </div>
+    </div>
+
+    <!-- Quick Stats for Barbers -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="dashboard-card barber">
+                <i class="bi bi-clock-history display-4 mb-3"></i>
+                <div class="dashboard-stat">{{ barber_stats.pending_bookings }}</div>
+                <div class="dashboard-label">Pending Requests</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card barber">
+                <i class="bi bi-calendar-check display-4 mb-3"></i>
+                <div class="dashboard-stat">{{ barber_stats.today_appointments }}</div>
+                <div class="dashboard-label">Today's Appointments</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card barber">
+                <i class="bi bi-currency-dollar display-4 mb-3"></i>
+                <div class="dashboard-stat">${{ barber_stats.week_earnings }}</div>
+                <div class="dashboard-label">This Week's Earnings</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card barber">
+                <i class="bi bi-star-fill display-4 mb-3"></i>
+                <div class="dashboard-stat">{{ barber_stats.average_rating|floatformat:1 }}</div>
+                <div class="dashboard-label">Average Rating</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions for Barbers -->
+    <div class="quick-actions mb-4">
+        <a href="/bookings/manage/" class="quick-action text-decoration-none">
+            <i class="bi bi-calendar-check"></i>
+            <h5>Manage Bookings</h5>
+            <p class="text-muted">Approve or reject requests</p>
+        </a>
+        <a href="/barbers/schedule/" class="quick-action text-decoration-none">
+            <i class="bi bi-calendar3"></i>
+            <h5>My Schedule</h5>
+            <p class="text-muted">View weekly schedule</p>
+        </a>
+        <a href="/barbers/{{ barber.id }}/" class="quick-action text-decoration-none">
+            <i class="bi bi-person-circle"></i>
+            <h5>My Profile</h5>
+            <p class="text-muted">View public profile</p>
+        </a>
+    </div>
+
+    <!-- Pending Booking Requests -->
+    {% if pending_bookings %}
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h5 class="widget-title">Pending Booking Requests</h5>
+            <span class="badge bg-warning">{{ pending_bookings|length }} pending</span>
+        </div>
+        <div class="widget-content">
+            {% for booking in pending_bookings %}
+                <div class="booking-card card mb-3 pending">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h6 class="mb-1">{{ booking.service.name }}</h6>
+                                <p class="text-muted mb-1">
+                                    <strong>{{ booking.client.get_full_name|default:booking.client.username }}</strong><br>
+                                    <i class="bi bi-calendar me-1"></i>{{ booking.date }} at {{ booking.time }}
+                                </p>
+                                {% if booking.notes %}
+                                    <small class="text-muted"><i class="bi bi-chat-left-text me-1"></i>{{ booking.notes }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="fw-bold text-success mb-2">${{ booking.service.price }}</div>
+                                <form method="post" action="/bookings/manage/" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="booking_id" value="{{ booking.pk }}">
+                                    <button type="submit" name="action" value="approve" class="btn btn-sm btn-success me-1">
+                                        <i class="bi bi-check-circle"></i> Approve
+                                    </button>
+                                    <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-x-circle"></i> Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Today's Schedule -->
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h5 class="widget-title">Today's Schedule</h5>
+            <span class="badge bg-info">{{ today_schedule|length }} appointments</span>
+        </div>
+        <div class="widget-content">
+            {% if today_schedule %}
+                <div class="schedule-grid">
+                    {% for appointment in today_schedule %}
+                        <div class="time-slot {% if appointment.status == 'approved' %}available{% else %}booked{% endif %}">
+                            <div class="fw-bold">{{ appointment.time }}</div>
+                            <div class="small">{{ appointment.client.get_full_name|default:appointment.client.username }}</div>
+                            <div class="small text-muted">{{ appointment.service.name }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted text-center py-3">No appointments scheduled for today.</p>
+            {% endif %}
+        </div>
+    </div>
+
+{% elif user.profile.user_type == 'admin' or user.is_superuser %}
+    <!-- ADMIN DASHBOARD -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="text-info mb-3">
+                <i class="bi bi-gear-fill me-2"></i>Admin Dashboard
+            </h3>
+        </div>
+    </div>
+
+    <!-- Quick Stats for Admin -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="dashboard-card admin">
+                <i class="bi bi-people display-4 mb-3"></i>
+                <div class="dashboard-stat">{{ admin_stats.total_clients }}</div>
+                <div class="dashboard-label">Total Clients</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card admin">
+                <i class="bi bi-scissors display-4 mb-3"></i>
+                <div class="dashboard-stat">{{ admin_stats.total_barbers }}</div>
+                <div class="dashboard-label">Active Barbers</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card admin">
+                <i class="bi bi-calendar-check display-4 mb-3"></i>
+                <div class="dashboard-stat">{{ admin_stats.today_bookings }}</div>
+                <div class="dashboard-label">Today's Bookings</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card admin">
+                <i class="bi bi-currency-dollar display-4 mb-3"></i>
+                <div class="dashboard-stat">${{ admin_stats.month_revenue }}</div>
+                <div class="dashboard-label">Month Revenue</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions for Admin -->
+    <div class="quick-actions mb-4">
+        <a href="/admin/" class="quick-action text-decoration-none">
+            <i class="bi bi-gear"></i>
+            <h5>Django Admin</h5>
+            <p class="text-muted">System administration</p>
+        </a>
+        <a href="/shop/revenue/" class="quick-action text-decoration-none">
+            <i class="bi bi-graph-up"></i>
+            <h5>Analytics</h5>
+            <p class="text-muted">Revenue & performance</p>
+        </a>
+        <a href="/shop/schedule/" class="quick-action text-decoration-none">
+            <i class="bi bi-calendar3"></i>
+            <h5>Schedule Overview</h5>
+            <p class="text-muted">All appointments</p>
+        </a>
+        <a href="/admin/auth/user/" class="quick-action text-decoration-none">
+            <i class="bi bi-people"></i>
+            <h5>User Management</h5>
+            <p class="text-muted">Manage users & roles</p>
+        </a>
+    </div>
+
+    <!-- Recent Booking Activity -->
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h5 class="widget-title">Recent Booking Activity</h5>
+            <a href="/admin/bookings/booking/" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="widget-content">
+            {% if recent_admin_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Client</th>
+                                <th>Barber</th>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in recent_admin_bookings %}
+                            <tr>
+                                <td>{{ booking.created_at|date:"M d, H:i" }}</td>
+                                <td>{{ booking.client.get_full_name|default:booking.client.username }}</td>
+                                <td>{{ booking.barber }}</td>
+                                <td>{{ booking.service.name }}</td>
+                                <td>
+                                    <span class="badge status-{{ booking.status }}">
+                                        {{ booking.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if booking.status == 'pending' %}
+                                        <span class="text-warning">Waiting for barber</span>
+                                    {% elif booking.status == 'approved' %}
+                                        <span class="text-success">Confirmed</span>
+                                    {% elif booking.status == 'rejected' %}
+                                        <span class="text-danger">Declined</span>
+                                    {% else %}
+                                        <span class="text-info">{{ booking.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center py-3">No recent booking activity.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- System Overview -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="dashboard-widget">
+                <div class="widget-header">
+                    <h5 class="widget-title">Barber Performance</h5>
+                </div>
+                <div class="widget-content">
+                    {% for barber in top_barbers %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center">
+                                {% if barber.photo %}
+                                    <img src="{{ barber.photo.url }}" class="barber-image-small me-2" alt="{{ barber }}">
+                                {% else %}
+                                    <div class="barber-image-small me-2 bg-light d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-person text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold">{{ barber }}</div>
+                                    <small class="text-muted">{{ barber.bookings_count }} bookings</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold">${{ barber.total_earnings|floatformat:2 }}</div>
+                                <div class="star-rating">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= barber.average_rating %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="dashboard-widget">
+                <div class="widget-header">
+                    <h5 class="widget-title">Service Popularity</h5>
+                </div>
+                <div class="widget-content">
+                    {% for service in popular_services %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <div class="fw-bold">{{ service.name }}</div>
+                                <small class="text-muted">${{ service.price }} - {{ service.duration_minutes }}min</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold">{{ service.booking_count }}</div>
+                                <small class="text-muted">bookings</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <!-- FALLBACK FOR UNASSIGNED USER TYPE -->
+    <div class="text-center py-5">
+        <i class="bi bi-person-plus display-1 text-muted mb-3"></i>
+        <h4>Complete Your Profile</h4>
+        <p class="text-muted mb-4">Please complete your profile to access your personalized dashboard.</p>
+        <a href="/accounts/profile/" class="btn btn-primary">Complete Profile</a>
+    </div>
+{% endif %}
+{% endblock %}

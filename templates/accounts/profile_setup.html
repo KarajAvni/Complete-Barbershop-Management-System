@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Your Profile - The Barbershop{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Complete Your Profile</h2>
+                <p class="text-center text-muted mb-4">Please select your role to access the appropriate features</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">I am a:</label>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <div class="role-card card h-100 text-center" data-role="client">
+                                    <div class="card-body">
+                                        <i class="bi bi-person-check display-4 text-primary mb-3"></i>
+                                        <h5 class="card-title">Client</h5>
+                                        <p class="card-text">I want to book appointments and get haircuts</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="user_type" value="client" id="client" required>
+                                            <label class="form-check-label" for="client">Select Client</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="role-card card h-100 text-center" data-role="barber">
+                                    <div class="card-body">
+                                        <i class="bi bi-scissors display-4 text-success mb-3"></i>
+                                        <h5 class="card-title">Barber</h5>
+                                        <p class="card-text">I am a professional barber providing services</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="user_type" value="barber" id="barber" required>
+                                            <label class="form-check-label" for="barber">Select Barber</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional fields for barbers -->
+                    <div id="barber-fields" style="display: none;">
+                        <h5 class="mb-3">Barber Information</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="experience_years" class="form-label">Years of Experience</label>
+                                <input type="number" class="form-control" name="experience_years" id="experience_years" min="0" max="50">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="hourly_rate" class="form-label">Hourly Rate ($)</label>
+                                <input type="number" class="form-control" name="hourly_rate" id="hourly_rate" min="10" max="200" step="0.01">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="specialties" class="form-label">Specialties</label>
+                            <input type="text" class="form-control" name="specialties" id="specialties" placeholder="e.g., Classic cuts, Beard styling, Modern styles">
+                        </div>
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" name="bio" id="bio" rows="3" placeholder="Tell us about yourself and your experience..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Complete Setup</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.role-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.role-card:hover {
+    border-color: #007bff;
+    transform: translateY(-5px);
+}
+
+.role-card.selected {
+    border-color: #007bff;
+    background-color: #f8f9ff;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleCards = document.querySelectorAll('.role-card');
+    const barberFields = document.getElementById('barber-fields');
+    const clientRadio = document.getElementById('client');
+    const barberRadio = document.getElementById('barber');
+    
+    roleCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const role = this.dataset.role;
+            const radio = document.getElementById(role);
+            
+            // Clear previous selections
+            roleCards.forEach(c => c.classList.remove('selected'));
+            
+            // Select this card
+            this.classList.add('selected');
+            radio.checked = true;
+            
+            // Show/hide barber fields
+            if (role === 'barber') {
+                barberFields.style.display = 'block';
+            } else {
+                barberFields.style.display = 'none';
+            }
+        });
+    });
+    
+    // Also handle direct radio button clicks
+    clientRadio.addEventListener('change', function() {
+        if (this.checked) {
+            barberFields.style.display = 'none';
+            roleCards.forEach(c => c.classList.remove('selected'));
+            document.querySelector('[data-role="client"]').classList.add('selected');
+        }
+    });
+    
+    barberRadio.addEventListener('change', function() {
+        if (this.checked) {
+            barberFields.style.display = 'block';
+            roleCards.forEach(c => c.classList.remove('selected'));
+            document.querySelector('[data-role="barber"]').classList.add('selected');
+        }
+    });
+});
+</script>
+{% endblock %}

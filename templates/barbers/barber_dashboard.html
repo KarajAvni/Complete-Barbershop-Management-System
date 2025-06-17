@@ -1,0 +1,129 @@
+<!-- templates/barbers/barber_dashboard.html -->
+{% extends 'base.html' %}
+
+{% block title %}Barber Dashboard - The Barbershop{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Welcome, {{ barber }}!</h2>
+    <div>
+        <span class="badge bg-warning fs-6">{{ pending_bookings.count }} pending</span>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-clock-history display-4 text-warning mb-3"></i>
+                <h5 class="card-title">{{ pending_bookings.count }}</h5>
+                <p class="card-text">Pending Bookings</p>
+                <a href="{% url 'bookings:manage' %}" class="btn btn-outline-warning">Review</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-calendar-check display-4 text-success mb-3"></i>
+                <h5 class="card-title">{{ bookings.count }}</h5>
+                <p class="card-text">Total Bookings</p>
+                <a href="{% url 'bookings:manage' %}" class="btn btn-outline-success">View All</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-star-fill display-4 text-info mb-3"></i>
+                <h5 class="card-title">{{ barber.average_rating|floatformat:1 }}</h5>
+                <p class="card-text">Average Rating</p>
+                <a href="{% url 'barbers:detail' barber.pk %}" class="btn btn-outline-info">View Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Bookings</h5>
+            </div>
+            <div class="card-body">
+                {% if bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Service</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings %}
+                            <tr>
+                                <td>{{ booking.client.get_full_name|default:booking.client.username }}</td>
+                                <td>{{ booking.service.name }}</td>
+                                <td>{{ booking.date }}</td>
+                                <td>{{ booking.time }}</td>
+                                <td>
+                                    <span class="badge bg-{% if booking.status == 'approved' %}success{% elif booking.status == 'pending' %}warning{% elif booking.status == 'rejected' %}danger{% elif booking.status == 'completed' %}info{% else %}secondary{% endif %}">
+                                        {{ booking.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'bookings:detail' booking.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                    {% if booking.status == 'pending' %}
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="booking_id" value="{{ booking.pk }}">
+                                            <button type="submit" name="action" value="approve" class="btn btn-sm btn-success">Approve</button>
+                                            <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger">Reject</button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">No bookings yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>This Week</h6>
+                    <p class="text-muted mb-1">Completed: <strong>0</strong></p>
+                    <p class="text-muted mb-1">Pending: <strong>{{ pending_bookings.count }}</strong></p>
+                    <p class="text-muted">Revenue: <strong>$0.00</strong></p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Profile</h6>
+                    <p class="text-muted mb-1">Experience: <strong>{{ barber.experience_years }} years</strong></p>
+                    <p class="text-muted mb-1">Rate: <strong>${{ barber.hourly_rate }}/hour</strong></p>
+                    <p class="text-muted">Reviews: <strong>{{ barber.reviews.count }}</strong></p>
+                </div>
+                
+                <div class="d-grid">
+                    <a href="{% url 'barbers:detail' barber.pk %}" class="btn btn-outline-primary">View Public Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

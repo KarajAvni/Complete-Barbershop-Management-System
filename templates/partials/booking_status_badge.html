@@ -1,0 +1,13 @@
+# templates/partials/booking_status_badge.html
+<span class="badge bg-{% if status == 'approved' %}success{% elif status == 'pending' %}warning{% elif status == 'rejected' %}danger{% elif status == 'completed' %}info{% else %}secondary{% endif %}">
+    {% if status == 'approved' %}
+        <i class="bi bi-check-circle me-1"></i>
+    {% elif status == 'pending' %}
+        <i class="bi bi-clock me-1"></i>
+    {% elif status == 'rejected' %}
+        <i class="bi bi-x-circle me-1"></i>
+    {% elif status == 'completed' %}
+        <i class="bi bi-check2-all me-1"></i>
+    {% endif %}
+    {{ status|title }}
+</span>

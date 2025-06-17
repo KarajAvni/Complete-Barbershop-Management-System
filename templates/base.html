@@ -1,0 +1,201 @@
+<!-- templates/base.html -->
+{% load static %}
+<!-- {% load barbershop_extras %} -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}The Barbershop{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    
+    <!-- HTMX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.9.2/htmx.min.js"></script>
+</head>
+<body>
+    <!-- Top Navigation for Desktop -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-none d-lg-flex">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-scissors me-2"></i>The Barbershop
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                    <!-- Common navigation for all users -->
+                    <a class="nav-link" href="/accounts/dashboard/">Dashboard</a>
+                    
+                    <!-- Role-specific navigation -->
+                    {% if user.is_superuser or user.is_admin %}
+                        <!-- ADMIN ONLY -->
+                        <a class="nav-link" href="/admin/">
+                            <i class="bi bi-gear me-1"></i>Django Admin
+                        </a>
+                        <a class="nav-link" href="/shop/revenue/">
+                            <i class="bi bi-graph-up me-1"></i>Revenue Analytics
+                        </a>
+                        <a class="nav-link" href="/barbers/">
+                            <i class="bi bi-people me-1"></i>All Barbers
+                        </a>
+                        <a class="nav-link" href="/shop/settings/">Settings</a>
+                        
+                    {% elif user.is_barber %}
+                        <!-- BARBER ONLY -->
+                        <a class="nav-link" href="/bookings/manage/">
+                            <i class="bi bi-calendar-check me-1"></i>Manage Bookings
+                        </a>
+                        <a class="nav-link" href="/barbers/schedule/">My Schedule</a>
+                        <a class="nav-link" href="/shop/revenue/">
+                            <i class="bi bi-graph-up me-1"></i>My Revenue
+                        </a>
+                        
+                    {% else %}
+                        <!-- CLIENT ONLY -->
+                        <a class="nav-link" href="{% url 'barbers:list' %}">
+                            <i class="bi bi-people me-1"></i>Our Barbers
+                        </a>
+                        <a class="nav-link" href="{% url 'bookings:book' %}">
+                            <i class="bi bi-calendar-plus me-1"></i>Book Appointment
+                        </a>
+                        <a class="nav-link" href="{% url 'bookings:history' %}">My Bookings</a>
+                    {% endif %}
+                    
+                    <a class="nav-link" href="{% url 'accounts:profile' %}">Profile</a>
+                    <a class="nav-link logout-link" href="#" onclick="document.getElementById('logout-form').submit(); return false;">
+                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                    </a>
+                    <!-- Hidden logout form -->
+                    <form id="logout-form" method="post" action="/accounts/logout/" style="display: none;">
+                        {% csrf_token %}
+                    </form>
+                {% else %}
+                    <a class="nav-link" href="/barbers/">Our Barbers</a>
+                    <a class="nav-link" href="/accounts/login/">Login</a>
+                    <a class="nav-link" href="/accounts/register/">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container-fluid px-3 py-4">
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav d-lg-none">
+        <div class="mobile-nav-container">
+            {% if user.is_authenticated %}
+                <a href="/accounts/dashboard/" class="mobile-nav-item">
+                    <i class="bi bi-house-door"></i>
+                    <span>Home</span>
+                </a>
+                
+                {% if user.is_superuser or user.is_admin %}
+                    <!-- ADMIN MOBILE NAV -->
+                    <a href="/admin/" class="mobile-nav-item">
+                        <i class="bi bi-gear"></i>
+                        <span>Admin</span>
+                    </a>
+                    <a href="/shop/revenue/" class="mobile-nav-item">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="/barbers/" class="mobile-nav-item">
+                        <i class="bi bi-people"></i>
+                        <span>Barbers</span>
+                    </a>
+                    
+                {% elif user.is_barber %}
+                    <!-- BARBER MOBILE NAV -->
+                    <a href="/bookings/manage/" class="mobile-nav-item">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>Manage</span>
+                    </a>
+                    <a href="/shop/revenue/" class="mobile-nav-item">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Revenue</span>
+                    </a>
+                    <a href="/barbers/schedule/" class="mobile-nav-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>Schedule</span>
+                    </a>
+                    
+                {% else %}
+                    <!-- CLIENT MOBILE NAV -->
+                    <a href="{% url 'barbers:list' %}" class="mobile-nav-item">
+                        <i class="bi bi-people"></i>
+                        <span>Barbers</span>
+                    </a>
+                    <a href="{% url 'bookings:book' %}" class="mobile-nav-item">
+                        <i class="bi bi-calendar-plus"></i>
+                        <span>Book</span>
+                    </a>
+                    <a href="{% url 'bookings:history' %}" class="mobile-nav-item">
+                        <i class="bi bi-clock-history"></i>
+                        <span>History</span>
+                    </a>
+                {% endif %}
+                
+                <a href="/accounts/profile/" class="mobile-nav-item">
+                    <i class="bi bi-person"></i>
+                    <span>Profile</span>
+                </a>
+                <!-- Mobile Logout -->
+                <a href="#" class="mobile-nav-item" onclick="document.getElementById('logout-form-mobile').submit(); return false;">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                </a>
+                <!-- Hidden mobile logout form -->
+                <form id="logout-form-mobile" method="post" action="/accounts/logout/" style="display: none;">
+                    {% csrf_token %}
+                </form>
+            {% else %}
+                <a href="/" class="mobile-nav-item">
+                    <i class="bi bi-house-door"></i>
+                    <span>Home</span>
+                </a>
+                <a href="/barbers/" class="mobile-nav-item">
+                    <i class="bi bi-people"></i>
+                    <span>Barbers</span>
+                </a>
+                <a href="/accounts/login/" class="mobile-nav-item">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Login</span>
+                </a>
+                <a href="/accounts/register/" class="mobile-nav-item">
+                    <i class="bi bi-person-plus"></i>
+                    <span>Register</span>
+                </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

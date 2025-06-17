@@ -1,0 +1,72 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome to The Barbershop{% endblock %}
+
+{% block content %}
+<div class="hero-section text-center py-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="display-4 fw-bold mb-4">Welcome to The Barbershop</h1>
+            <p class="lead mb-4">Professional haircuts and grooming services by experienced barbers</p>
+            
+            {% if not user.is_authenticated %}
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg me-md-2">Get Started</a>
+                    <a href="{% url 'barbers:list' %}" class="btn btn-outline-primary btn-lg">Meet Our Barbers</a>
+                </div>
+            {% else %}
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{% url 'bookings:book' %}" class="btn btn-primary btn-lg me-md-2">Book Appointment</a>
+                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-primary btn-lg">Dashboard</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <i class="bi bi-scissors display-4 text-primary mb-3"></i>
+                <h5 class="card-title">Expert Barbers</h5>
+                <p class="card-text">Our skilled barbers have years of experience in traditional and modern cuts.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <i class="bi bi-calendar-check display-4 text-primary mb-3"></i>
+                <h5 class="card-title">Easy Booking</h5>
+                <p class="card-text">Book your appointment online and choose your preferred barber and time.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <i class="bi bi-star-fill display-4 text-primary mb-3"></i>
+                <h5 class="card-title">Quality Service</h5>
+                <p class="card-text">We're committed to providing the best grooming experience for every client.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not user.is_authenticated %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title">Ready to get started?</h5>
+                <p class="card-text">Create an account to book appointments and manage your bookings.</p>
+                <a href="{% url 'accounts:register' %}" class="btn btn-primary">Sign Up Now</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
