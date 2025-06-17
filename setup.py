@@ -1,0 +1,20 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="barbershop",
+    version="1.0.0",  # Must match __version__ in your __init__.py
+    packages=find_packages(),
+    install_requires=[
+        "asgiref==3.8.1",
+        "Django==5.2.3",
+        "sqlparse==0.5.3",
+        "tzdata==2025.2",
+        "Pillow==10.0.0",
+        "python-decouple==3.8",
+        "django-crispy-forms==2.1",
+        "crispy-bootstrap5==0.7",
+        "gunicorn==21.2.0",
+        "whitenoise==6.6.0",
+        "dj-database-url==2.1.0"  # Fixed typo (hj-database-url → dj-database-url)
+    ],
+)
